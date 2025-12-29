@@ -5,6 +5,6 @@ namespace TagCloudGenerator.Core.Interfaces
     public interface IFormatReader
     {
         bool CanRead(string filePath);
-        List<string> TryRead(string filePath);
+        Result<List<string>> TryRead(string filePath);
     }
 }

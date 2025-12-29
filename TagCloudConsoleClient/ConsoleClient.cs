@@ -58,27 +58,16 @@ namespace TagCloudConsoleClient
             Console.WriteLine($"Output file: {outputFile}");
 
 
-            try
-            {
-                if (_readersRepository.TryGetReader(inputFile, out var outputReader))
+            _readersRepository.TryGetReader(inputFile)
+                .Then(reader => reader.TryRead(inputFile))
+                .Then(words => _normalizer.Normalize(words))
+                .Then(words => _generator.Generate(words, canvasSettings, textSettings, _filters))
+                .Then(image => Result.OfAction(() => image.Save(outputFile, ImageFormat.Png), "Failed to save output image"))
+                .OnFail(error =>
                 {
-                    var words = _normalizer.Normalize(outputReader.TryRead(inputFile));
-                    var image = _generator.Generate(words, canvasSettings, textSettings, _filters);
-
-                    if (image != null) image.Save(outputFile, ImageFormat.Png);
-                    image.Dispose();
-
-                    Console.WriteLine("Tag cloud generation completed successfully!");
-                }
-                else
-                {
-                    throw new Exception("no suitable formate readers found");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error during generation: {ex.Message}");
-            }
+                    Console.WriteLine("Error during generation:");
+                    Console.WriteLine(error);
+                });
         }
 
         private static Color? TryParseColor(string colorStr)

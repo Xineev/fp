@@ -16,13 +16,17 @@ namespace TagCloudGenerator.Infrastructure.Readers
             return _readers.Any(r => r.CanRead(filePath));
         }
 
-        public bool TryGetReader(string filePath, out IFormatReader outputReader)
+        public Result<IFormatReader> TryGetReader(string filePath)
         {
-            outputReader = _readers.FirstOrDefault(r => r.CanRead(filePath));
-            if (outputReader == null)
-                return false;
+            if (string.IsNullOrWhiteSpace(filePath))
+                return Result.Fail<IFormatReader>("File path is empty");
+            var reader = _readers.FirstOrDefault(r => r.CanRead(filePath));
 
-            return true;
+            if (reader == null)
+                return Result.Fail<IFormatReader>(
+                    $"No reader found for file '{filePath}'");
+
+            return Result.Ok(reader);
         }
     }
 }

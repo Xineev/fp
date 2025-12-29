@@ -67,26 +67,22 @@ namespace TagCloudUIClient
         private void LoadExcludedWords(string path)
         {
             clbExcludedWords.Items.Clear();
-            try
-            {
-                if (_readersRepository.TryGetReader(path, out var outputReader))
+
+            _readersRepository.TryGetReader(path)
+                .Then(reader => reader.TryRead(path))
+                .Then(words => _normalizer.Normalize(words))
+                .OnSuccess(words =>
                 {
-                    var words = outputReader.TryRead(path);
-                    wordsToRender = _normalizer.Normalize(words);
-                }
-                else
-                {
-                    throw new Exception("no suitable formate readers found");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                   $"Ошибка чтения: {ex.Message}",
-                   "Формат файла не поддерживается",
-                   MessageBoxButtons.OK,
-                   MessageBoxIcon.Error);
-            }
+                    wordsToRender = words;
+                })
+                .OnFail(error => {
+                    MessageBox.Show(
+                        $"{error}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                });
 
             var text = File.ReadAllText(path);
             var distinctWords = wordsToRender.Distinct().OrderBy(w => w);
@@ -155,29 +151,21 @@ namespace TagCloudUIClient
                 .SetMinFontSize((int)numMinSize.Value)
                 .SetTextColor(textColor);
 
-            try
-            {
-                var bitmap = _generator.Generate(
-                    wordsToRender,
-                    canvasSettings,
-                    textSettings,
-                    filters);
-
-                picturePreview.Image?.Dispose();
-
-                _generatedBitmap = bitmap;
-                picturePreview.Image = bitmap;
-
-                btnSave.Enabled = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Ошибка генерации: {ex.Message}",
-                    "Генерация не удалась",
+            _generator.Generate(wordsToRender, canvasSettings, textSettings, filters)
+                .OnSuccess(bitmap =>
+                {
+                    picturePreview.Image?.Dispose();
+                    _generatedBitmap = bitmap;
+                    picturePreview.Image = bitmap;
+                    btnSave.Enabled = true;
+                })
+                .OnFail(error => {
+                    MessageBox.Show(
+                    $"Generation error: {error}",
+                    "Generation was not successful",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
-            }
+                });
         }
 
 

@@ -7,24 +7,41 @@ namespace TagCloudGenerator.Infrastructure.Renderers
 {
     public class PngRenderer : IRenderer
     {
-        public Bitmap Render(IEnumerable<CloudItem> items, CanvasSettings canvasSettings, TextSettings textSettings)
+        public Result<Bitmap> Render(IEnumerable<CloudItem> items, CanvasSettings canvasSettings, TextSettings textSettings)
         {
+            if (items == null)
+                return Result.Fail<Bitmap>("Cloud items are null");
+
             var itemsList = items.ToList();
-            var bitmap = new Bitmap(canvasSettings.CanvasSize.Width, canvasSettings.CanvasSize.Height);
-            using var graphics = Graphics.FromImage(bitmap);
-            ConfigureGraphics(graphics);
-            graphics.Clear(canvasSettings.BackgroundColor);
-            var (offsetX, offsetY) = CalculateOffset(itemsList, canvasSettings);
+            if (itemsList.Count == 0)
+                return Result.Fail<Bitmap>("Cloud items are empty");
 
-            using var brush = new SolidBrush(textSettings.TextColor);
-            using var stringFormat = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            using var pen = new Pen(textSettings.TextColor, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
-            foreach (var item in itemsList)
+            if (canvasSettings.CanvasSize.Width <= 0 ||
+                canvasSettings.CanvasSize.Height <= 0)
+                return Result.Fail<Bitmap>("Invalid canvas size");
+
+            var cloudBounds = CalculateCloudBounds(itemsList);
+            if (!FitsCanvas(cloudBounds, canvasSettings.CanvasSize))
+                return Result.Fail<Bitmap>(
+                    $"Tag cloud size ({cloudBounds.Width}x{cloudBounds.Height}) " +
+                    $"exceeds canvas size ({canvasSettings.CanvasSize.Width}x{canvasSettings.CanvasSize.Height})");
+
+            return Result.Of(() =>
             {
-                DrawCloudItem(graphics, item, offsetX, offsetY, canvasSettings, textSettings, brush, pen, stringFormat);
-            }
+                var bitmap = new Bitmap(canvasSettings.CanvasSize.Width, canvasSettings.CanvasSize.Height);
+                using var graphics = Graphics.FromImage(bitmap);
+                ConfigureGraphics(graphics);
+                graphics.Clear(canvasSettings.BackgroundColor);
 
-            return bitmap;
+                var (offsetX, offsetY) = CalculateOffset(itemsList, canvasSettings);
+                using var brush = new SolidBrush(textSettings.TextColor);
+                using var stringFormat = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                using var pen = new Pen(textSettings.TextColor, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+
+                foreach (var item in itemsList)
+                    DrawCloudItem(graphics, item, offsetX, offsetY, canvasSettings, textSettings, brush, pen, stringFormat);
+                return bitmap;
+            }, "Failed to render tag cloud image");
         }
 
         private (int offsetX, int offsetY) CalculateOffset(

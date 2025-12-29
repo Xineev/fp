@@ -6,6 +6,6 @@ namespace TagCloudGenerator.Core.Interfaces
 {
     public interface IRenderer
     {
-        public Bitmap Render(IEnumerable<CloudItem> items, CanvasSettings canvasSettings, TextSettings textSettings);
+        public Result<Bitmap> Render(IEnumerable<CloudItem> items, CanvasSettings canvasSettings, TextSettings textSettings);
     }
 }

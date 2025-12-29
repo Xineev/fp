@@ -9,17 +9,9 @@ namespace TagCloudGenerator.Infrastructure.Readers
             return Path.GetExtension(filePath).Equals(".txt", StringComparison.OrdinalIgnoreCase);
         }
 
-        public List<string> TryRead(string filePath)
+        public Result<List<string>> TryRead(string filePath)
         {
-            try
-            {
-                return File.ReadAllLines(filePath).ToList();
-            }
-            catch (IOException e)
-            {
-                Console.WriteLine($"Error reading file: {e.Message}");
-                return null;
-            }
+            return Result.Of(() => { return File.ReadAllLines(filePath).ToList(); }, "Faield to read .txt file");
         }
     }
 }

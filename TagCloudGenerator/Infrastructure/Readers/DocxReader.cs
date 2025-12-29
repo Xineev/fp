@@ -11,9 +11,9 @@ namespace TagCloudGenerator.Infrastructure.Readers
             return Path.GetExtension(filePath).Equals(".docx", StringComparison.OrdinalIgnoreCase);
         }
 
-        public List<string> TryRead(string filePath)
+        public Result<List<string>> TryRead(string filePath)
         {
-            try
+            return Result.Of(() =>
             {
                 using var doc = WordprocessingDocument.Open(filePath, false);
                 return doc.MainDocumentPart.Document.Body
@@ -21,12 +21,7 @@ namespace TagCloudGenerator.Infrastructure.Readers
                     .Select(p => p.InnerText)
                     .Where(t => !string.IsNullOrWhiteSpace(t))
                     .ToList();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"DOCX read error: {e.Message}");
-                return new List<string>();
-            }
+            }, "Failed to read DOCX file");
         }
     }
 }
