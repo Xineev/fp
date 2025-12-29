@@ -42,7 +42,8 @@ namespace TagCloudGeneratorTests
 
             var result = reader.TryRead(tempFilePath);
 
-            Assert.That(result, Is.EqualTo(new[] { "word1", "word2", "word3" }));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.GetValueOrThrow(), Is.EqualTo(new[] { "word1", "word2", "word3" }));
         }
 
         [Test]
@@ -52,7 +53,8 @@ namespace TagCloudGeneratorTests
 
             var result = reader.TryRead(tempFilePath);
 
-            Assert.That(result, Is.Empty);
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.GetValueOrThrow(), Is.Empty);
         }
 
         [Test]
@@ -61,15 +63,16 @@ namespace TagCloudGeneratorTests
             CreateDocx(new[] { "word1", "", "   ", "word2" });
             var result = reader.TryRead(tempFilePath);
 
-            Assert.That(result, Is.EqualTo(new[] { "word1", "word2" }));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.GetValueOrThrow(), Is.EqualTo(new[] { "word1", "word2" }));
         }
 
         [Test]
-        public void TryRead_NonExistentFile_ReturnsEmptyList_Test()
+        public void TryRead_NonExistentFile_ReturnsFailResult_Test()
         {
             var result = reader.TryRead("nonexistent.docx");
 
-            Assert.That(result, Is.Empty);
+            Assert.That(result.IsSuccess, Is.False);
         }
 
         private void CreateDocx(IEnumerable<string> lines)

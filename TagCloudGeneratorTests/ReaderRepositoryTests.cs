@@ -47,31 +47,27 @@ namespace TagCloudGeneratorTests
         public void TryRead_UsesFirstMatchingReader()
         {
             var expected = new List<string> { "word1", "word2" };
-            var result = new List<string>();
 
             firstReaderMock.Setup(r => r.CanRead("file.docx")).Returns(false);
             secondReaderMock.Setup(r => r.CanRead("file.docx")).Returns(true);
             secondReaderMock.Setup(r => r.TryRead("file.docx")).Returns(expected);
 
-            if (readerRepository.TryGetReader("file.docx", out var reader))
-            {
-                result = reader.TryRead("file.docx");
-            }
+            var result = readerRepository.TryGetReader("file.docx");
+            Assert.That(result.IsSuccess, Is.True);
 
-            Assert.That(result, Is.EqualTo(expected));
+            Assert.That(result.GetValueOrThrow().TryRead("file.docx").GetValueOrThrow(), Is.EqualTo(expected));
 
             secondReaderMock.Verify(r => r.TryRead("file.docx"), Times.Once);
             firstReaderMock.Verify(r => r.TryRead(It.IsAny<string>()), Times.Never);
         }
 
         [Test]
-        public void TryRead_WhenNoReaderFound_ThrowsException()
+        public void TryRead_WhenNoReaderFound_ReturnsError()
         {
             firstReaderMock.Setup(r => r.CanRead(It.IsAny<string>())).Returns(false);
             secondReaderMock.Setup(r => r.CanRead(It.IsAny<string>())).Returns(false);
 
-            Assert.That(readerRepository.TryGetReader("file.xyz", out var reader), Is.False);
-            Assert.That(reader, Is.Null);
+            Assert.That(readerRepository.TryGetReader("file.xyz").IsSuccess, Is.False);
         }
     }
 }

@@ -33,10 +33,10 @@ namespace TagCloudGenerator.Core.Services
             _center = new Point(0, 0);
         }
 
-        public Bitmap? Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, IEnumerable<IFilter> filters)
+        public Result<Bitmap> Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, IEnumerable<IFilter> filters)
         {
             words = ApplyFilters(words, filters);
-            if (words.Count == 0) return null;
+            if (words.Count == 0) return Result.Fail<Bitmap>("Found no words to render after filtering");
 
             var wordsWithFreq = _sorterer.Sort(_analyzer.Analyze(words));
 

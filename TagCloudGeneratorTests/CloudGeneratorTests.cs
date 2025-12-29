@@ -39,7 +39,7 @@ namespace TagCloudGeneratorTests
         }
 
         [Test]
-        public void Generate_EmptyWords_ReturnsNull_AndDoesNotRender_Test()
+        public void Generate_EmptyWords_ReturnsFailResult_AndDoesNotRender_Test()
         {
             filterMock
                 .Setup(f => f.Filter(It.IsAny<List<string>>()))
@@ -51,7 +51,7 @@ namespace TagCloudGeneratorTests
                 new TextSettings(),
                 new[] { filterMock.Object });
 
-            Assert.IsNull(result);
+            Assert.That(result.IsSuccess, Is.False);
 
             rendererMock.Verify(r => r.Render(
                 It.IsAny<IEnumerable<CloudItem>>(),
@@ -61,7 +61,7 @@ namespace TagCloudGeneratorTests
         }
 
         [Test]
-        public void Generate_AllWordsFilteredOut_ReturnsNull_Test()
+        public void Generate_AllWordsFilteredOut_ReturnsFailResult_Test()
         {
             var words = new List<string> { "in", "a", "for" };
 
@@ -75,7 +75,7 @@ namespace TagCloudGeneratorTests
                 new TextSettings(),
                 new[] { filterMock.Object });
 
-            Assert.IsNull(result);
+            Assert.That(result.IsSuccess, Is.False);
 
             rendererMock.Verify(r => r.Render(
                 It.IsAny<IEnumerable<CloudItem>>(),
@@ -143,8 +143,8 @@ namespace TagCloudGeneratorTests
                 textSettings,
                 new[] { filterMock.Object });
 
-            Assert.IsNotNull(result);
-            result.Dispose();
+            Assert.That(result.IsSuccess, Is.True);
+            result.GetValueOrThrow().Dispose();
 
             filterMock.Verify(f => f.Filter(words), Times.Once);
             analyzerMock.Verify(a => a.Analyze(filteredWords), Times.Once);
