@@ -13,7 +13,14 @@ namespace TagCloudGenerator.Infrastructure.Readers
 
         public Result<List<string>> TryRead(string filePath)
         {
-            using var doc = WordprocessingDocument.Open(filePath, false);
+            var docResult = Result.Of(() => 
+            WordprocessingDocument.Open(filePath, false),
+            $"Failed to get document: '{filePath}'");
+
+            if (!docResult.IsSuccess)
+                return Result.Fail<List<string>>(docResult.Error);
+
+            var doc = docResult.Value;
 
             if (doc.MainDocumentPart == null)
                 return Result.Fail<List<string>>("Missing MainDocumentPart");
@@ -30,6 +37,8 @@ namespace TagCloudGenerator.Infrastructure.Readers
                     .ToList();
             },
             $"Failed to load .docx document: '{filePath}'");
+
+            doc.Dispose();
 
             return result;
         }

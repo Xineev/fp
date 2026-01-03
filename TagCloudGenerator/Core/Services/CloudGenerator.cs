@@ -36,7 +36,13 @@ namespace TagCloudGenerator.Core.Services
             var filteredWords = ApplyFilters(words, filters);
 
             var wordsWithFreq = _analyzer.Analyze(filteredWords);
+            if (!wordsWithFreq.IsSuccess || wordsWithFreq.Value == null)
+                return Result.Fail<Bitmap>("Analyzed words collection is null");
+
             var sortedWords = _sorter.Sort(wordsWithFreq.Value);
+            if (!sortedWords.IsSuccess || sortedWords.Value == null)
+                return Result.Fail<Bitmap>("Sorted words collection is null");
+
             var initializedItems = InitializeCloudItems(sortedWords.Value, textSettings).ToList();
 
             return _renderer.Render(initializedItems, canvasSettings, textSettings);
