@@ -11,7 +11,7 @@ namespace TagCloudGeneratorTests
         public void Analyze_EmptyInput_ReturnsEmpty_Test()
         {
             var words = new List<string>();
-            var result = frequencyAnalyzer.Analyze(words);
+            var result = frequencyAnalyzer.Analyze(words).GetValueOrThrow();
             Assert.That(result, Is.Empty);
         }
 
@@ -19,7 +19,7 @@ namespace TagCloudGeneratorTests
         public void Analyze_SingleWord_ReturnsOneItemWithFrequencyOne_Test()
         {
             var words = new List<string> { "hello" };
-            var result = frequencyAnalyzer.Analyze(words).ToList();
+            var result = frequencyAnalyzer.Analyze(words).GetValueOrThrow().ToList();
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result[0].Key, Is.EqualTo("hello"));
@@ -30,7 +30,7 @@ namespace TagCloudGeneratorTests
         public void Analyze_MultipleWords_ReturnsCorrectFrequencies_Test()
         {
             var words = new List<string> { "hello", "world", "hello", "test", "world", "hello" };
-            var result = frequencyAnalyzer.Analyze(words).ToList();
+            var result = frequencyAnalyzer.Analyze(words).GetValueOrThrow().ToList();
 
             Assert.That(result.Count, Is.EqualTo(3));
             Assert.That(result[0].Key, Is.EqualTo("hello"));
@@ -45,7 +45,7 @@ namespace TagCloudGeneratorTests
         public void Analyze_CaseSensitive_ReturnsSeparateItems_Test()
         {
             var words = new List<string> { "Hello", "hello", "HELLO" };
-            var result = frequencyAnalyzer.Analyze(words).ToList();
+            var result = frequencyAnalyzer.Analyze(words).GetValueOrThrow().ToList();
             Assert.That(result.Count, Is.EqualTo(3));
         }
     }

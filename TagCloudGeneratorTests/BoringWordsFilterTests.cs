@@ -11,7 +11,7 @@ namespace TagCloudGeneratorTests
         public void Filter_EmptyInput_ReturnsEmpty()
         {
             var words = new List<string>();
-            var result = filter.Filter(words);
+            var result = filter.Filter(words).GetValueOrThrow();
             Assert.That(result, Is.Empty);
         }
 
@@ -19,21 +19,25 @@ namespace TagCloudGeneratorTests
         public void Filter_RemovesBoringWords_Test()
         {
             var words = new List<string> { "hello", "in", "world", "a", "test" };
-            var result = filter.Filter(words).ToList();
+            var result = filter.Filter(words);
+            var actual = new List<string>();
+            if (result.IsSuccess)
+                actual = result.GetValueOrThrow();
+                
 
-            Assert.That(result.Count, Is.EqualTo(3));
-            Assert.That(result, Contains.Item("hello"));
-            Assert.That(result, Contains.Item("world"));
-            Assert.That(result, Contains.Item("test"));
-            Assert.That(result, Does.Not.Contain("in"));
-            Assert.That(result, Does.Not.Contain("a"));
+            Assert.That(actual.Count, Is.EqualTo(3));
+            Assert.That(actual, Contains.Item("hello"));
+            Assert.That(actual, Contains.Item("world"));
+            Assert.That(actual, Contains.Item("test"));
+            Assert.That(actual, Does.Not.Contain("in"));
+            Assert.That(actual, Does.Not.Contain("a"));
         }
 
         [Test]
         public void Filter_AllBoringWords_ReturnsEmpty_Test()
         {
             var words = new List<string>  { "in", "a", "for", "on" };
-            var result = filter.Filter(words);
+            var result = filter.Filter(words).GetValueOrThrow();
             Assert.That(result, Is.Empty);
         }
 
@@ -41,10 +45,13 @@ namespace TagCloudGeneratorTests
         public void Filter_NoBoringWords_ReturnsAllWords_Test()
         {
             var words = new List<string> { "hello", "world", "test" };
-            var result = filter.Filter(words).ToList();
+            var result = filter.Filter(words);
+            var actual = new List<string>();
+            if (result.IsSuccess)
+                actual = result.GetValueOrThrow();
 
-            Assert.That(result.Count, Is.EqualTo(3));
-            Assert.That(result, Is.EquivalentTo(words));
+            Assert.That(actual.Count, Is.EqualTo(3));
+            Assert.That(actual, Is.EquivalentTo(words));
         }
 
         [Test]
@@ -71,12 +78,15 @@ namespace TagCloudGeneratorTests
         public void Filter_PreservesOrder_Test()
         {
             var words = new List<string> { "hello", "in", "world", "a", "test", "for" };
-            var result = filter.Filter(words).ToList();
+            var result = filter.Filter(words);
+            var actual = new List<string>();
+            if (result.IsSuccess)
+                actual = result.GetValueOrThrow();
 
-            Assert.That(result.Count, Is.EqualTo(3));
-            Assert.That(result[0], Is.EqualTo("hello"));
-            Assert.That(result[1], Is.EqualTo("world"));
-            Assert.That(result[2], Is.EqualTo("test"));
+            Assert.That(actual.Count, Is.EqualTo(3));
+            Assert.That(actual[0], Is.EqualTo("hello"));
+            Assert.That(actual[1], Is.EqualTo("world"));
+            Assert.That(actual[2], Is.EqualTo("test"));
         }
     }
 }

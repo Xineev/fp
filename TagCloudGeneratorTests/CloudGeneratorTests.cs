@@ -4,6 +4,7 @@ using System.Drawing;
 using TagCloudGenerator.Core.Interfaces;
 using TagCloudGenerator.Core.Models;
 using TagCloudGenerator.Core.Services;
+using TagCloudGenerator.Infrastructure;
 
 namespace TagCloudGeneratorTests
 {
@@ -15,7 +16,7 @@ namespace TagCloudGeneratorTests
         private Mock<IRenderer> rendererMock;
         private Mock<IFontSizeCalculator> fontSizeCalculatorMock;
         private Mock<ITextMeasurer> textMeasurerMock;
-        private Mock<ISorterer> sortererMock;
+        private Mock<ISorter> sortererMock;
         private CloudGenerator cloudGenerator;
 
         [SetUp]
@@ -27,7 +28,7 @@ namespace TagCloudGeneratorTests
             rendererMock = new Mock<IRenderer>();
             fontSizeCalculatorMock = new Mock<IFontSizeCalculator>();
             textMeasurerMock = new Mock<ITextMeasurer>();
-            sortererMock = new Mock<ISorterer>();
+            sortererMock = new Mock<ISorter>();
 
             cloudGenerator = new CloudGenerator(
                 algorithmMock.Object,
@@ -64,10 +65,12 @@ namespace TagCloudGeneratorTests
         public void Generate_AllWordsFilteredOut_ReturnsFailResult_Test()
         {
             var words = new List<string> { "in", "a", "for" };
+            
+            var filtered = new List<string>();
 
             filterMock
                 .Setup(f => f.Filter(words))
-                .Returns(new List<string>());
+                .Returns(filtered);
 
             var result = cloudGenerator.Generate(
                 words,
@@ -92,11 +95,20 @@ namespace TagCloudGeneratorTests
 
             var analyzed = new Dictionary<string, int> { { "hello", 2 }, { "world", 1 } };
 
-            var sorted = new List<(string Word, int Frequency)> { ("hello", 2), ("world", 1) };
+            var sorted = new WordsWithFrequency
+            {
+                WordsWithFreq = new List<WordFrequencyData>
+                {
+                    new WordFrequencyData { Word = "hello", Frequency = 2 },
+                    new WordFrequencyData { Word = "world", Frequency = 1 }
+                },
+                MaxFreq = 2,
+                MinFreq = 1
+            };
 
             filterMock
-                .Setup(f => f.Filter(words))
-                .Returns(filteredWords);
+                .Setup(f => f.ShouldInclude(It.IsAny<string>()))
+                .Returns(true);
 
             analyzerMock
                 .Setup(a => a.Analyze(filteredWords))
@@ -104,7 +116,7 @@ namespace TagCloudGeneratorTests
 
             sortererMock
                 .Setup(s => s.Sort(analyzed))
-                .Returns(sorted);
+                .Returns(Result.Ok(sorted));
 
             var textSettings = new TextSettings()
                 .SetFontFamily("Arial")
@@ -146,7 +158,7 @@ namespace TagCloudGeneratorTests
             Assert.That(result.IsSuccess, Is.True);
             result.GetValueOrThrow().Dispose();
 
-            filterMock.Verify(f => f.Filter(words), Times.Once);
+            filterMock.Verify(f => f.ShouldInclude(It.IsAny<string>()), Times.Exactly(3));
             analyzerMock.Verify(a => a.Analyze(filteredWords), Times.Once);
             algorithmMock.Verify(a => a.Reset(), Times.Once);
             algorithmMock.Verify(a => a.PutNextRectangle(It.IsAny<Size>()), Times.Exactly(2));

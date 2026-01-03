@@ -1,7 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using NUnit.Framework;
-using TagCloudGenerator.Infrastructure;
 using TagCloudGenerator.Infrastructure.Readers;
 
 namespace TagCloudGeneratorTests
