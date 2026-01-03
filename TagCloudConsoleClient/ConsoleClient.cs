@@ -4,8 +4,6 @@ using System.Drawing.Imaging;
 using TagCloudGenerator.Core.Interfaces;
 using TagCloudGenerator.Core.Models;
 using TagCloudGenerator.Infrastructure;
-using TagCloudGenerator.Infrastructure.Readers;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TagCloudConsoleClient
 {
@@ -50,8 +48,8 @@ namespace TagCloudConsoleClient
                 .SetFontSizeRange(opts.MinFontSize, opts.MaxFontSize)
                 .SetTextColor(TryParseColor(opts.TextColor));
 
-            string inputFile = opts.InputFile;
-            string outputFile = opts.OutputFile;
+            var inputFile = opts.InputFile;
+            var outputFile = opts.OutputFile;
 
             Console.WriteLine("Starting tag cloud generation...");
             Console.WriteLine($"Input file: {inputFile}");
@@ -62,7 +60,11 @@ namespace TagCloudConsoleClient
                 .Then(reader => reader.TryRead(inputFile))
                 .Then(words => _normalizer.Normalize(words))
                 .Then(words => _generator.Generate(words, canvasSettings, textSettings, _filters))
-                .Then(image => Result.OfAction(() => image.Save(outputFile, ImageFormat.Png), "Failed to save output image"))
+                .Then(image => Result.OfAction(() => 
+                {
+                    image.Save(outputFile, ImageFormat.Png);
+                    image.Dispose();
+                }, "Failed to save output image"))
                 .OnFail(error =>
                 {
                     Console.WriteLine("Error during generation:");

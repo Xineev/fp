@@ -13,15 +13,25 @@ namespace TagCloudGenerator.Infrastructure.Readers
 
         public Result<List<string>> TryRead(string filePath)
         {
-            return Result.Of(() =>
+            using var doc = WordprocessingDocument.Open(filePath, false);
+
+            if (doc.MainDocumentPart == null)
+                return Result.Fail<List<string>>("Missing MainDocumentPart");
+
+            if (doc.MainDocumentPart.Document.Body == null)
+                return Result.Fail<List<string>>("Missing document body");
+
+            var result = Result.Of(() =>
             {
-                using var doc = WordprocessingDocument.Open(filePath, false);
                 return doc.MainDocumentPart.Document.Body
                     .Elements<Paragraph>()
                     .Select(p => p.InnerText)
                     .Where(t => !string.IsNullOrWhiteSpace(t))
                     .ToList();
-            }, "Failed to read DOCX file");
+            },
+            $"Failed to load .docx document: '{filePath}'");
+
+            return result;
         }
     }
 }

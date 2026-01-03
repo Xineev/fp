@@ -1,7 +1,9 @@
-﻿namespace TagCloudGenerator.Core.Interfaces
+﻿using TagCloudGenerator.Infrastructure;
+
+namespace TagCloudGenerator.Core.Interfaces
 {
     public interface INormalizer
     {
-        public List<string> Normalize(List<string> words);
+        public Result<List<string>> Normalize(List<string> words);
     }
 }

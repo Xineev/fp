@@ -11,7 +11,9 @@ namespace TagCloudGenerator.Infrastructure.Readers
 
         public Result<List<string>> TryRead(string filePath)
         {
-            return Result.Of(() => { return File.ReadAllLines(filePath).ToList(); }, "Faield to read .txt file");
+            return Result.Of(() => 
+                File.ReadAllLines(filePath).ToList(), 
+                $"Failed to read .txt file: '{filePath}'");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using TagCloudGenerator.Core.Interfaces;
+using TagCloudGenerator.Infrastructure;
 
 namespace TagCloudGenerator.Algorithms
 {
@@ -7,42 +8,38 @@ namespace TagCloudGenerator.Algorithms
     {
         private Point center;
 
-        private readonly Random random = new Random();
-
         private readonly List<Rectangle> rectangles = new List<Rectangle>();
 
         private double currentAngle = 0;
         private double currentRadius = 0;
-
-        private int countToGenerate = 10;
-
-        private (int min, int max) width = new(20, 21);
-        private (int min, int max) height = new(20, 21);
 
         private double angleStep = 0.1;
         private double radiusStep = 0.5;
 
         public BasicTagCloudAlgorithm(Point center)
         {
-            if (center.X <= 0 || center.Y <= 0) throw new ArgumentException("Center coordinates must be positives");
+            if (center.X < 0 || center.Y < 0)
+                center = new Point(0, 0);
+
             this.center = center;
         }
 
         public BasicTagCloudAlgorithm()
         {
-            this.center = new Point(0, 0);
+            center = new Point(0, 0);
         }
 
-        public Rectangle PutNextRectangle(Size rectangleSize)
+        public Result<Rectangle> PutNextRectangle(Size rectangleSize)
         {
-            if (rectangleSize.Width <= 0 || rectangleSize.Height <= 0) throw new ArgumentException("Rectangle sizes must be positives");
+            if (rectangleSize.Width <= 0 || rectangleSize.Height <= 0)
+                return Result.Fail<Rectangle>("Rectangle sizes must be positives");
 
             if (rectangles.Count == 0)
             {
-                return PutFirstRectangle(rectangleSize);
+                return Result.Ok(PutFirstRectangle(rectangleSize));
             }
 
-            return PlaceNextRectange(rectangleSize);
+            return Result.Ok(PlaceNextRectange(rectangleSize));
         }
 
         private Rectangle PlaceNextRectange(Size rectangleSize)
@@ -82,13 +79,6 @@ namespace TagCloudGenerator.Algorithms
             currentRadius = rectangleSize.Height / 2;
             rectangles.Add(first);
             return first;
-        }
-
-        public BasicTagCloudAlgorithm WithCenterAt(Point point)
-        {
-            if (point.X <= 0 || point.Y <= 0) throw new ArgumentException("Center coordinates must be positives");
-            center = point;
-            return this;
         }
 
         public ITagCloudAlgorithm Reset()

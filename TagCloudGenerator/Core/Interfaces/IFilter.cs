@@ -1,8 +1,11 @@
-﻿
+﻿using TagCloudGenerator.Infrastructure;
+
 namespace TagCloudGenerator.Core.Interfaces
 {
     public interface IFilter
     {
-        List<string> Filter(List<string> words);
+        Result<List<string>> Filter(List<string> words);
+
+        bool ShouldInclude(string word);
     }
 }

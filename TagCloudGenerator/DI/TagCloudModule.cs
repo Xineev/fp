@@ -4,7 +4,6 @@ using TagCloudGenerator.Core.Interfaces;
 using TagCloudGenerator.Core.Services;
 using TagCloudGenerator.Infrastructure.Analyzers;
 using TagCloudGenerator.Infrastructure.Calculators;
-using TagCloudGenerator.Infrastructure.Filters;
 using TagCloudGenerator.Infrastructure.Measurers;
 using TagCloudGenerator.Infrastructure.Normalizers;
 using TagCloudGenerator.Infrastructure.Readers;
@@ -13,7 +12,7 @@ using TagCloudGenerator.Infrastructure.Sorterers;
 
 namespace TagCloudGenerator.DI
 {
-    public class TagCloudModule : Autofac.Module
+    public class TagCloudModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -24,7 +23,7 @@ namespace TagCloudGenerator.DI
                    .As<IReaderRepository>()
                    .SingleInstance();
 
-            builder.RegisterType<FrequencyDescendingSorterer>().As<ISorterer>().SingleInstance();
+            builder.RegisterType<FrequencyDescendingSorter>().As<ISorter>().SingleInstance();
 
             builder.RegisterType<LowerCaseNormalizer>().As<INormalizer>();
 

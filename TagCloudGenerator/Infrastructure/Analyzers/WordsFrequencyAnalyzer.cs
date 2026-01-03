@@ -1,26 +1,27 @@
-﻿using System.Drawing;
-using TagCloudGenerator.Core.Interfaces;
-using TagCloudGenerator.Core.Models;
+﻿using TagCloudGenerator.Core.Interfaces;
 
 namespace TagCloudGenerator.Infrastructure.Analyzers
 {
     public class WordsFrequencyAnalyzer : IAnalyzer
     {
-        public Dictionary<string, int> Analyze(List<string> words)
+        public Result<Dictionary<string, int>> Analyze(List<string> words)
         {
             var wordFreqDictionary = new Dictionary<string, int>();
 
-            if (words == null || words.Count == 0)
-                return new Dictionary<string, int>();
+            if (words == null)
+                return Result.Fail<Dictionary<string, int>>("Missing words list to analyze");
 
             foreach (string word in words) 
             {
-                if(wordFreqDictionary.TryAdd(word, 1))
+                if(word == null) 
+                    return Result.Fail<Dictionary<string, int>>("Word in a list is null");
+                
+                if (wordFreqDictionary.TryAdd(word, 1))
                     continue;
-                else wordFreqDictionary[word]++;
+                wordFreqDictionary[word]++;
             }
 
-            return wordFreqDictionary;
+            return Result.Ok(wordFreqDictionary);
         }
     }
 }

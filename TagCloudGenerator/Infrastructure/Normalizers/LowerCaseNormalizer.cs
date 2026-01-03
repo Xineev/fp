@@ -4,11 +4,12 @@ namespace TagCloudGenerator.Infrastructure.Normalizers
 {
     public class LowerCaseNormalizer : INormalizer
     {
-        public List<string> Normalize(List<string> words)
+        public Result<List<string>> Normalize(List<string> words)
         {
-            if (words == null || words.Count == 0) return new List<string>();
+            if (words == null)
+                return Result.Fail<List<string>>("Can't normalize if list is null");
 
-            return words.Select(w => w.ToLower()).ToList();
+            return Result.Of(() => words.Select(w => w.ToLower()).ToList());
         }
     }
 }

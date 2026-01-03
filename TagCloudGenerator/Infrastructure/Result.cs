@@ -1,4 +1,5 @@
-﻿namespace TagCloudGenerator.Infrastructure
+﻿
+namespace TagCloudGenerator.Infrastructure
 {
     public class None
     {

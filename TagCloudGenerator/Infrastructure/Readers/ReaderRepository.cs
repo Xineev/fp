@@ -20,11 +20,11 @@ namespace TagCloudGenerator.Infrastructure.Readers
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 return Result.Fail<IFormatReader>("File path is empty");
+
             var reader = _readers.FirstOrDefault(r => r.CanRead(filePath));
 
             if (reader == null)
-                return Result.Fail<IFormatReader>(
-                    $"No reader found for file '{filePath}'");
+                return Result.Fail<IFormatReader>($"No reader found for file '{filePath}'");
 
             return Result.Ok(reader);
         }
