@@ -18,19 +18,19 @@ namespace TagCloudGenerator.Infrastructure.Renderers
                 return Result.Fail<Bitmap>("Invalid canvas size");
 
             var bitmap = new Bitmap(canvasSettings.CanvasSize.Width, canvasSettings.CanvasSize.Height);
-            using (Graphics graphics = Graphics.FromImage(bitmap))
+            using (var graphics = Graphics.FromImage(bitmap))
             {
                 ConfigureGraphics(graphics);
                 graphics.Clear(canvasSettings.BackgroundColor);
                 var (offsetX, offsetY) = CalculateOffset(itemsList, canvasSettings);
-                using (SolidBrush brush = new SolidBrush(textSettings.TextColor))
+                using (var brush = new SolidBrush(textSettings.TextColor))
                 {
-                    using (StringFormat stringFormat = new StringFormat())
+                    using (var stringFormat = new StringFormat())
                     {
                         stringFormat.Alignment = StringAlignment.Center;
                         stringFormat.LineAlignment = StringAlignment.Center;
 
-                        using (Pen pen = new Pen(textSettings.TextColor, 1))
+                        using (var pen = new Pen(textSettings.TextColor, 1))
                         {
                             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 

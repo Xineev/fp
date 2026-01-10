@@ -39,10 +39,10 @@ namespace TagCloudGenerator.Algorithms
                 return Result.Ok(PutFirstRectangle(rectangleSize));
             }
 
-            return Result.Ok(PlaceNextRectange(rectangleSize));
+            return Result.Ok(PlaceNextRectangle(rectangleSize));
         }
 
-        private Rectangle PlaceNextRectange(Size rectangleSize)
+        private Rectangle PlaceNextRectangle(Size rectangleSize)
         {
             while (true)
             {

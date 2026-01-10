@@ -1,27 +1,56 @@
-﻿using TagCloudGenerator.Core.Interfaces;
+﻿using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using TagCloudGenerator.Core.Interfaces;
+using TagCloudGenerator.Core.Models;
 
 namespace TagCloudGenerator.Infrastructure.Analyzers
 {
     public class WordsFrequencyAnalyzer : IAnalyzer
     {
-        public Result<Dictionary<string, int>> Analyze(List<string> words)
+        public Result<WordsWithFrequency> Analyze(List<string> words)
         {
+            var wordFreqList = new List<WordFrequencyData>();
             var wordFreqDictionary = new Dictionary<string, int>();
+            var minFrequency = int.MaxValue;
+            var maxFrequency = int.MinValue;
 
-            if (words == null)
-                return Result.Fail<Dictionary<string, int>>("Missing words list to analyze");
+            if (words == null || words.Count == 0)
+                return Result.Ok(new WordsWithFrequency
+                {
+                    WordsWithFreq = wordFreqList,
+                    MaxFreq = maxFrequency,
+                    MinFreq = minFrequency
+                });
 
             foreach (string word in words) 
             {
-                if(word == null) 
-                    return Result.Fail<Dictionary<string, int>>("Word in a list is null");
-                
-                if (wordFreqDictionary.TryAdd(word, 1))
-                    continue;
-                wordFreqDictionary[word]++;
+                if (wordFreqDictionary.TryGetValue(word, out int currentCount))
+                {
+                    wordFreqDictionary[word] = currentCount + 1;
+                    int newCount = currentCount + 1;
+
+                    minFrequency = Math.Min(newCount, minFrequency);
+                    maxFrequency = Math.Max(newCount, maxFrequency);
+                }
+                else
+                {
+                    wordFreqDictionary[word] = 1;
+
+                    minFrequency = Math.Min(1, minFrequency);
+                    maxFrequency = Math.Max(1, maxFrequency);
+                }
             }
 
-            return Result.Ok(wordFreqDictionary);
+            foreach (var pair in wordFreqDictionary)
+                wordFreqList.Add(new WordFrequencyData { 
+                    Word = pair.Key, 
+                    Frequency = pair.Value 
+                });
+
+            return Result.Ok(new WordsWithFrequency { 
+                WordsWithFreq = wordFreqList, 
+                MaxFreq = maxFrequency, 
+                MinFreq = minFrequency 
+            });
         }
     }
 }

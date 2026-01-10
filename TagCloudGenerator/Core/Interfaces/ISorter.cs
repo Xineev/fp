@@ -5,6 +5,6 @@ namespace TagCloudGenerator.Core.Interfaces
 {
     public interface ISorter
     {
-        public Result<WordsWithFrequency> Sort(Dictionary<string, int> wordsWithFreqs);
+        public Result<WordsWithFrequency> Sort(WordsWithFrequency wordsWithFreqs);
     }
 }

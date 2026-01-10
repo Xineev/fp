@@ -15,18 +15,14 @@ namespace TagCloudGenerator.Infrastructure.Filters
 
         public Result<List<string>> Filter(List<string> words)
         {
-            if (words == null) 
-                return Result.Fail<List<string>>("Filter missing list of words");
+            if (words == null || words.Count == 0)
+                return Result.Ok(words);
 
-            return words.Where(w => !boringWords.Contains(w)).ToList();
+            return Result.Ok(words.Where(w => !boringWords.Contains(w)).ToList());
         }
 
-        //А надо ли тут оборачивать в Result?
-        //С одной стороны оставляя bool мы маскируем исключение, с другой Result исполняет аналогичную возвращаемому значению задачу
         public bool ShouldInclude(string word)
         {
-            if(word == null) return false;
-
             return !boringWords.Contains(word);
         }
     }

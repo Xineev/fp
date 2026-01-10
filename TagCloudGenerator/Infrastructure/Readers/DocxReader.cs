@@ -13,14 +13,14 @@ namespace TagCloudGenerator.Infrastructure.Readers
 
         public Result<List<string>> TryRead(string filePath)
         {
-            var docResult = Result.Of(() => 
-            WordprocessingDocument.Open(filePath, false),
-            $"Failed to get document: '{filePath}'");
+            var docOpeningResult = Result.Of(() => 
+                WordprocessingDocument.Open(filePath, false),
+                $"Failed to get document: '{filePath}'");
 
-            if (!docResult.IsSuccess)
-                return Result.Fail<List<string>>(docResult.Error);
+            if (!docOpeningResult.IsSuccess)
+                return Result.Fail<List<string>>(docOpeningResult.Error);
 
-            var doc = docResult.Value;
+            var doc = docOpeningResult.Value;
 
             if (doc.MainDocumentPart == null)
                 return Result.Fail<List<string>>("Missing MainDocumentPart");

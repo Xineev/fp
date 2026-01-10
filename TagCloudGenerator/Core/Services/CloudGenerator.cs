@@ -29,7 +29,7 @@ namespace TagCloudGenerator.Core.Services
             _sorter = sorterer;
         }
 
-        public Result<Bitmap> Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, IEnumerable<IFilter> filters)
+        public Result<List<CloudItem>> Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, ICollection<IFilter> filters)
         {
             _algorithm.Reset();
             
@@ -37,29 +37,33 @@ namespace TagCloudGenerator.Core.Services
 
             var wordsWithFreq = _analyzer.Analyze(filteredWords);
             if (!wordsWithFreq.IsSuccess || wordsWithFreq.Value == null)
-                return Result.Fail<Bitmap>("Analyzed words collection is null");
+                return Result.Fail<List<CloudItem>>("Analyzed words collection is null");
 
             var sortedWords = _sorter.Sort(wordsWithFreq.Value);
             if (!sortedWords.IsSuccess || sortedWords.Value == null)
-                return Result.Fail<Bitmap>("Sorted words collection is null");
+                return Result.Fail<List<CloudItem>>("Sorted words collection is null");
 
-            var initializedItems = InitializeCloudItems(sortedWords.Value, textSettings).ToList();
-
-            return _renderer.Render(initializedItems, canvasSettings, textSettings);
+            return InitializeCloudItems(sortedWords.Value, textSettings).ToList();
         }
 
-        private List<string> ApplyFilters(List<string> words, IEnumerable<IFilter> filters)
+        private List<string> ApplyFilters(List<string> words, ICollection<IFilter> filters)
         {
             var filteredWords = new List<string>();
 
             foreach (var word in words)
             {
+                bool shouldInclude = true;
                 foreach (var filter in filters)
                 {
-                    if (filter.ShouldInclude(word) == false)
+                    if (!filter.ShouldInclude(word))
+                    {
+                        shouldInclude = false;
                         break;
+                    }
                 }
-                filteredWords.Add(word);
+
+                if (shouldInclude)
+                    filteredWords.Add(word);
             }
 
             return filteredWords;

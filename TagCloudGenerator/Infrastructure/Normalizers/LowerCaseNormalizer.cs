@@ -6,8 +6,8 @@ namespace TagCloudGenerator.Infrastructure.Normalizers
     {
         public Result<List<string>> Normalize(List<string> words)
         {
-            if (words == null)
-                return Result.Fail<List<string>>("Can't normalize if list is null");
+            if (words == null || words.Count == 0)
+                return Result.Ok(words);
 
             return Result.Of(() => words.Select(w => w.ToLower()).ToList());
         }

@@ -6,6 +6,6 @@ namespace TagCloudGenerator.Core.Interfaces
 {
     public interface ITagCloudGenerator
     {
-        public Result<Bitmap> Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, IEnumerable<IFilter> filters);
+        public Result<List<CloudItem>> Generate(List<string> words, CanvasSettings canvasSettings, TextSettings textSettings, ICollection<IFilter> filters);
     }
 }
