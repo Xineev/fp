@@ -93,9 +93,7 @@ namespace TagCloudGeneratorTests
             var words = new List<string> { "hello", "world", "hello" };
             var filteredWords = new List<string> { "hello", "world", "hello" };
 
-            var analyzed = new Dictionary<string, int> { { "hello", 2 }, { "world", 1 } };
-
-            var sorted = new WordsWithFrequency
+            var analyzed = new WordsWithFrequency
             {
                 WordsWithFreq = new List<WordFrequencyData>
                 {
@@ -105,6 +103,8 @@ namespace TagCloudGeneratorTests
                 MaxFreq = 2,
                 MinFreq = 1
             };
+
+            var sorted = analyzed;
 
             filterMock
                 .Setup(f => f.ShouldInclude(It.IsAny<string>()))
@@ -142,13 +142,6 @@ namespace TagCloudGeneratorTests
                 .Setup(a => a.PutNextRectangle(It.IsAny<Size>()))
                 .Returns(new Rectangle(0, 0, 100, 30));
 
-            rendererMock
-                .Setup(r => r.Render(
-                    It.IsAny<IEnumerable<CloudItem>>(),
-                    It.IsAny<CanvasSettings>(),
-                    It.IsAny<TextSettings>()))
-                .Returns(new Bitmap(1, 1));
-
             var result = cloudGenerator.Generate(
                 words,
                 new CanvasSettings(),
@@ -156,21 +149,11 @@ namespace TagCloudGeneratorTests
                 new[] { filterMock.Object });
 
             Assert.That(result.IsSuccess, Is.True);
-            result.GetValueOrThrow().Dispose();
 
             filterMock.Verify(f => f.ShouldInclude(It.IsAny<string>()), Times.Exactly(3));
             analyzerMock.Verify(a => a.Analyze(filteredWords), Times.Once);
             algorithmMock.Verify(a => a.Reset(), Times.Once);
             algorithmMock.Verify(a => a.PutNextRectangle(It.IsAny<Size>()), Times.Exactly(2));
-
-            rendererMock.Verify(r => r.Render(
-                It.Is<IEnumerable<CloudItem>>(items => items.Count() == 2),
-                It.IsAny<CanvasSettings>(),
-                It.Is<TextSettings>(ts =>
-                    ts.FontFamily == "Arial" &&
-                    Math.Abs(ts.MinFontSize - 12) < float.Epsilon &&
-                    Math.Abs(ts.MaxFontSize - 72) < float.Epsilon)),
-                Times.Once);
         }
 
     }
