@@ -18,6 +18,7 @@ namespace TagCloudUIClient
         private readonly ITagCloudGenerator _generator;
         private readonly IReaderRepository _readersRepository;
         private readonly INormalizer _normalizer;
+        private readonly IRenderer _renderer;
         private string _lastOutputPath = string.Empty;
 
         private List<string> wordsToRender;
@@ -45,11 +46,12 @@ namespace TagCloudUIClient
         private Button btnSave;
 
 
-        public MainForm(ITagCloudGenerator generator, IReaderRepository readers, INormalizer normalizer)
+        public MainForm(ITagCloudGenerator generator, IReaderRepository readers, INormalizer normalizer, IRenderer renderer)
         {
             _generator = generator;
             _readersRepository = readers;
             _normalizer = normalizer;
+            _renderer = renderer;
             InitializeComponent();
         }
 
@@ -134,8 +136,6 @@ namespace TagCloudUIClient
                 .Where(word => !clbExcludedWords.CheckedItems.Contains(word))
                 .ToList();
 
-            var filters = new List<IFilter> { new BoringWordsFilter(excluded) };
-
             var font = lblFont.Tag as Font ?? Font;
             var bgColor = lblBgColor.BackColor;
             var textColor = lblTextColor.BackColor;
@@ -151,8 +151,11 @@ namespace TagCloudUIClient
                 .SetMinFontSize((int)numMinSize.Value)
                 .SetTextColor(textColor);
 
+            var filters = new List<IFilter>() { new NullWordsFilter(), new BoringWordsFilter(excluded) };
+
             _generator.Generate(wordsToRender, canvasSettings, textSettings, filters)
-                .OnSuccess(bitmap =>
+                .Then(items => _renderer.Render(items, canvasSettings, textSettings))
+                .Then(bitmap =>
                 {
                     picturePreview.Image?.Dispose();
                     _generatedBitmap = bitmap;
@@ -161,8 +164,8 @@ namespace TagCloudUIClient
                 })
                 .OnFail(error => {
                     MessageBox.Show(
-                    $"Generation error: {error}",
-                    "Generation was not successful",
+                    $"Rendering error: {error}",
+                    "Rendering was not successful",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 });

@@ -1,6 +1,7 @@
 using Autofac;
 using TagCloudGenerator.Core.Interfaces;
 using TagCloudGenerator.DI;
+using TagCloudGenerator.Infrastructure.Filters;
 
 namespace TagCloudUIClient
 {
@@ -18,6 +19,8 @@ namespace TagCloudUIClient
 
             var builder = new ContainerBuilder();
             builder.RegisterModule<TagCloudModule>();
+            builder.RegisterType<NullWordsFilter>().As<IFilter>();
+            builder.RegisterType<BoringWordsFilter>().As<IFilter>();
             builder.RegisterType<WinFormsClient>().As<IClient>().SingleInstance();
             var container = builder.Build();
 

@@ -7,12 +7,14 @@ namespace TagCloudUIClient
         private readonly ITagCloudGenerator _generator;
         private readonly IReaderRepository _reader;
         private readonly INormalizer _normalizer;
+        private readonly IRenderer _renderer;
 
-        public WinFormsClient(ITagCloudGenerator generator, IReaderRepository repository, INormalizer normalizer)
+        public WinFormsClient(ITagCloudGenerator generator, IReaderRepository repository, INormalizer normalizer, IRenderer renderer)
         {
             _generator = generator;
             _reader = repository;
             _normalizer = normalizer;
+            _renderer = renderer;
         }
 
         public void Run(string[] args)
@@ -20,7 +22,7 @@ namespace TagCloudUIClient
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var mainForm = new MainForm(_generator, _reader, _normalizer);
+            var mainForm = new MainForm(_generator, _reader, _normalizer, _renderer);
             Application.Run(mainForm);
         }
     }
