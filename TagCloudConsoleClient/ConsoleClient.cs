@@ -10,16 +10,18 @@ namespace TagCloudConsoleClient
     public class ConsoleClient : IClient
     {
         private readonly ITagCloudGenerator _generator;
-        private readonly IEnumerable<IFilter> _filters;
+        private readonly ICollection<IFilter> _filters;
         private readonly IReaderRepository _readersRepository;
         private readonly INormalizer _normalizer;
+        private readonly IRenderer _renderer;
 
-        public ConsoleClient(ITagCloudGenerator generator, IEnumerable<IFilter> filters, IReaderRepository readers, INormalizer normalizer)
+        public ConsoleClient(ITagCloudGenerator generator, ICollection<IFilter> filters, IReaderRepository readers, INormalizer normalizer, IRenderer renderer)
         {
             _generator = generator;
             _filters = filters;
             _readersRepository = readers;
             _normalizer = normalizer;
+            _renderer = renderer;
         }
 
         public void Run(string[] args)
@@ -60,6 +62,7 @@ namespace TagCloudConsoleClient
                 .Then(reader => reader.TryRead(inputFile))
                 .Then(words => _normalizer.Normalize(words))
                 .Then(words => _generator.Generate(words, canvasSettings, textSettings, _filters))
+                .Then(items => _renderer.Render(items, canvasSettings, textSettings))
                 .Then(image => Result.OfAction(() => 
                 {
                     image.Save(outputFile, ImageFormat.Png);

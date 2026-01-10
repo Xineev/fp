@@ -12,6 +12,7 @@ namespace TagCloudConsoleClient
             var builder = new ContainerBuilder();
 
             builder.RegisterModule<TagCloudModule>();
+            builder.RegisterType<NullWordsFilter>().As<IFilter>();
             builder.RegisterType<BoringWordsFilter>().As<IFilter>();
             builder.RegisterType<ConsoleClient>().As<IClient>();
 
