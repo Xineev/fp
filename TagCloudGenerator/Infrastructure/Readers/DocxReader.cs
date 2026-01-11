@@ -20,27 +20,23 @@ namespace TagCloudGenerator.Infrastructure.Readers
             if (!docOpeningResult.IsSuccess)
                 return Result.Fail<List<string>>(docOpeningResult.Error);
 
-            var doc = docOpeningResult.Value;
-
-            if (doc.MainDocumentPart == null)
-                return Result.Fail<List<string>>("Missing MainDocumentPart");
-
-            if (doc.MainDocumentPart.Document.Body == null)
-                return Result.Fail<List<string>>("Missing document body");
-
-            var result = Result.Of(() =>
+            return Result.Of(() =>
             {
-                return doc.MainDocumentPart.Document.Body
-                    .Elements<Paragraph>()
-                    .Select(p => p.InnerText)
-                    .Where(t => !string.IsNullOrWhiteSpace(t))
-                    .ToList();
-            },
-            $"Failed to load .docx document: '{filePath}'");
+                using (var doc = WordprocessingDocument.Open(filePath, false))
+                {
+                    if (doc.MainDocumentPart == null)
+                        throw new InvalidOperationException($"Document has no main part: '{filePath}'");
 
-            doc.Dispose();
+                    if (doc.MainDocumentPart.Document?.Body == null)
+                        throw new InvalidOperationException($"Document has no body content: '{filePath}'");
 
-            return result;
+                    return doc.MainDocumentPart.Document.Body
+                        .Elements<Paragraph>()
+                        .Select(p => p.InnerText)
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .ToList();
+                }
+            }, "Failed to read DOCX file");
         }
     }
 }

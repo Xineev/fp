@@ -17,8 +17,8 @@ namespace TagCloudGenerator.Infrastructure.Analyzers
                 return Result.Ok(new WordsWithFrequency
                 {
                     WordsWithFreq = wordFreqList,
-                    MaxFreq = maxFrequency,
-                    MinFreq = minFrequency
+                    MaxFreq = 0,
+                    MinFreq = 0
                 });
 
             foreach (string word in words) 

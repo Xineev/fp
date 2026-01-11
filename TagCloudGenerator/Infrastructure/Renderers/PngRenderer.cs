@@ -9,7 +9,7 @@ namespace TagCloudGenerator.Infrastructure.Renderers
         public Result<Bitmap> Render(IEnumerable<CloudItem> items, CanvasSettings canvasSettings, TextSettings textSettings)
         {
             if (items == null)
-                return Result.Fail<Bitmap>("Cloud items are null");
+                items = new List<CloudItem>();
 
             var itemsList = items.ToList();
 
@@ -18,32 +18,35 @@ namespace TagCloudGenerator.Infrastructure.Renderers
                 return Result.Fail<Bitmap>("Invalid canvas size");
 
             var bitmap = new Bitmap(canvasSettings.CanvasSize.Width, canvasSettings.CanvasSize.Height);
-            using (var graphics = Graphics.FromImage(bitmap))
+
+            var result = Result.Of(() => 
             {
-                ConfigureGraphics(graphics);
-                graphics.Clear(canvasSettings.BackgroundColor);
-                var (offsetX, offsetY) = CalculateOffset(itemsList, canvasSettings);
-                using (var brush = new SolidBrush(textSettings.TextColor))
+                using (var graphics = Graphics.FromImage(bitmap))
                 {
-                    using (var stringFormat = new StringFormat())
+                    ConfigureGraphics(graphics);
+                    graphics.Clear(canvasSettings.BackgroundColor);
+                    var (offsetX, offsetY) = CalculateOffset(itemsList, canvasSettings);
+
+                    using (var brush = new SolidBrush(textSettings.TextColor))
                     {
-                        stringFormat.Alignment = StringAlignment.Center;
-                        stringFormat.LineAlignment = StringAlignment.Center;
-
-                        using (var pen = new Pen(textSettings.TextColor, 1))
+                        using (var stringFormat = new StringFormat())
                         {
-                            pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                            stringFormat.Alignment = StringAlignment.Center;
+                            stringFormat.LineAlignment = StringAlignment.Center;
 
-                            return Result.Of(() =>
+                            using (var pen = new Pen(textSettings.TextColor, 1))
                             {
+                                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
                                 foreach (var item in itemsList)
                                     DrawCloudItem(graphics, item, offsetX, offsetY, canvasSettings, textSettings, brush, pen, stringFormat);
                                 return bitmap;
-                            });
+                            }
                         }
                     }
                 }
-            }
+            });
+
+            return result;
         }
 
         private (int offsetX, int offsetY) CalculateOffset(

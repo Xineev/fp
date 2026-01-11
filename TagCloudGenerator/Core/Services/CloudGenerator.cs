@@ -36,12 +36,12 @@ namespace TagCloudGenerator.Core.Services
             var filteredWords = ApplyFilters(words, filters);
 
             var wordsWithFreq = _analyzer.Analyze(filteredWords);
-            if (!wordsWithFreq.IsSuccess || wordsWithFreq.Value == null)
-                return Result.Fail<List<CloudItem>>("Analyzed words collection is null");
+            if (!wordsWithFreq.IsSuccess)
+                return Result.Fail<List<CloudItem>>(wordsWithFreq.Error);
 
             var sortedWords = _sorter.Sort(wordsWithFreq.Value);
-            if (!sortedWords.IsSuccess || sortedWords.Value == null)
-                return Result.Fail<List<CloudItem>>("Sorted words collection is null");
+            if (!sortedWords.IsSuccess)
+                return Result.Fail<List<CloudItem>>(sortedWords.Error);
 
             return InitializeCloudItems(sortedWords.Value, textSettings).ToList();
         }
