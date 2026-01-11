@@ -66,13 +66,13 @@ namespace TagCloudGeneratorTests
         }
 
         [Test]
-        public void Analyze_NoWords_StoresIntegerLimits_Test()
+        public void Analyze_NoWords_StoresValueOfZero_Test()
         {
             var words = new List<string> { };
             var result = frequencyAnalyzer.Analyze(words).GetValueOrThrow();
 
-            Assert.That(result.MaxFreq, Is.EqualTo(int.MinValue));
-            Assert.That(result.MinFreq, Is.EqualTo(int.MaxValue));
+            Assert.That(result.MaxFreq, Is.EqualTo(0));
+            Assert.That(result.MinFreq, Is.EqualTo(0));
         }
     }
 }

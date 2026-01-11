@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using System.Drawing;
+using System.Globalization;
 using TagCloudGenerator.Core.Interfaces;
 using TagCloudGenerator.Core.Models;
 using TagCloudGenerator.Core.Services;
@@ -40,37 +41,77 @@ namespace TagCloudGeneratorTests
         }
 
         [Test]
-        public void Generate_EmptyWords_ReturnsFailResult_AndDoesNotRender_Test()
+        public void Generate_EmptyWords_ReturnsSuccessfulResult_Test()
         {
+            var words = new List<string> { };
+            var filteredWords = new List<string> { };
+
+            var analyzed = new WordsWithFrequency
+            {
+                WordsWithFreq = new List<WordFrequencyData> { },
+                MaxFreq = 0,
+                MinFreq = 0
+            };
+
+            var sorted = analyzed;
+
             filterMock
-                .Setup(f => f.Filter(It.IsAny<List<string>>()))
-                .Returns(new List<string>());
+                .Setup(f => f.ShouldInclude(It.IsAny<string>()))
+                .Returns(true);
+
+            analyzerMock
+                .Setup(a => a.Analyze(filteredWords))
+                .Returns(analyzed);
+
+            sortererMock
+                .Setup(s => s.Sort(analyzed))
+                .Returns(Result.Ok(sorted));
+
+            var textSettings = new TextSettings()
+                .SetFontFamily("Arial")
+                .SetFontSizeRange(12, 72);
 
             var result = cloudGenerator.Generate(
-                new List<string>(),
+                words,
                 new CanvasSettings(),
-                new TextSettings(),
+                textSettings,
                 new[] { filterMock.Object });
 
-            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.IsSuccess, Is.True);
 
-            rendererMock.Verify(r => r.Render(
-                It.IsAny<IEnumerable<CloudItem>>(),
-                It.IsAny<CanvasSettings>(),
-                It.IsAny<TextSettings>()),
-                Times.Never);
+            filterMock.Verify(f => f.ShouldInclude(It.IsAny<string>()), Times.Never);
+            analyzerMock.Verify(a => a.Analyze(filteredWords), Times.Once);
+            algorithmMock.Verify(a => a.Reset(), Times.Once);
+            algorithmMock.Verify(a => a.PutNextRectangle(It.IsAny<Size>()), Times.Never);
         }
 
         [Test]
-        public void Generate_AllWordsFilteredOut_ReturnsFailResult_Test()
+        public void Generate_AllWordsFilteredOut_GeneratesSuccessfuly_Test()
         {
             var words = new List<string> { "in", "a", "for" };
             
             var filtered = new List<string>();
 
+            var analyzed = new WordsWithFrequency
+            {
+                WordsWithFreq = new List<WordFrequencyData> { },
+                MaxFreq = 0,
+                MinFreq = 0
+            };
+
+            var sorted = analyzed;
+
             filterMock
                 .Setup(f => f.Filter(words))
                 .Returns(filtered);
+
+            analyzerMock
+               .Setup(a => a.Analyze(filtered))
+               .Returns(analyzed);
+
+            sortererMock
+                .Setup(s => s.Sort(analyzed))
+                .Returns(Result.Ok(sorted));
 
             var result = cloudGenerator.Generate(
                 words,
@@ -78,13 +119,11 @@ namespace TagCloudGeneratorTests
                 new TextSettings(),
                 new[] { filterMock.Object });
 
-            Assert.That(result.IsSuccess, Is.False);
-
-            rendererMock.Verify(r => r.Render(
-                It.IsAny<IEnumerable<CloudItem>>(),
-                It.IsAny<CanvasSettings>(),
-                It.IsAny<TextSettings>()),
-                Times.Never);
+            Assert.That(result.IsSuccess, Is.True);
+            filterMock.Verify(f => f.ShouldInclude(It.IsAny<string>()), Times.Exactly(3));
+            analyzerMock.Verify(a => a.Analyze(filtered), Times.Once);
+            algorithmMock.Verify(a => a.Reset(), Times.Once);
+            algorithmMock.Verify(a => a.PutNextRectangle(It.IsAny<Size>()), Times.Never);
         }
 
         [Test]
